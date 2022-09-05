@@ -5,7 +5,13 @@ using UnityEngine.AI;
 
 public class Follow : MonoBehaviour
 {
-    [SerializeField] private GameObject[] checkPoints;
+    [SerializeField] private GameObject startPoint;
+
+    [SerializeField] private GameObject[] checkPointsRight;
+
+    [SerializeField] private GameObject[] checkPointsLeft;
+
+    private GameObject[] chosenPath;
 
     private NavMeshAgent agent;
 
@@ -18,9 +24,21 @@ public class Follow : MonoBehaviour
     {
         agent = this.GetComponent<NavMeshAgent>();
 
+        startPoint.GetComponent<MeshRenderer>().enabled = false;
+
+        foreach(var go in checkPointsRight)
+        {
+            go.GetComponent<MeshRenderer>().enabled = false;
+        }
+
+        foreach (var go in checkPointsLeft)
+        {
+            go.GetComponent<MeshRenderer>().enabled = false;
+        }
+
         currentIndex = 0;
 
-        cp = checkPoints[currentIndex];
+        cp = startPoint;
 
         agent.speed = 5.0f;
 
@@ -30,16 +48,37 @@ public class Follow : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(Vector3.Distance(this.transform.position, cp.transform.position) < 2.5f)
+        if(cp == startPoint)
         {
-            if (currentIndex == checkPoints.Length - 1)
-                currentIndex = 0;
+            currentIndex = 0;
+
+            if (Input.GetAxisRaw("Horizontal") < 0)
+            {
+                chosenPath = checkPointsLeft;
+            }
+
             else
+            {
+                chosenPath = checkPointsRight;
+            }
+
+        }
+
+        if (Vector3.Distance(this.transform.position, cp.transform.position) < 2.5f)
+        {
+            if (currentIndex >= chosenPath.Length - 1)
+            {
+                cp = startPoint;
+            }
+            else
+            {
                 currentIndex += 1;
-
-            cp = checkPoints[currentIndex];
-
+                cp = chosenPath[currentIndex];
+            }
+                
             agent.SetDestination(cp.transform.position);
         }
+
+        //Debug.Log(cp.name);
     }
 }
